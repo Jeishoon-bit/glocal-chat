@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>GLOCAL · chat global</title>
+    <style>
+        /* ===== RESET Y VARIABLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #0f0;
+            --text-secondary: #0f0;
+            --accent: #0f0;
+            --accent-secondary: #00f;
+            --border: #0f0;
+            --error: #f00;
+            --success: #0f0;
+            --warning: #ff0;
+        }
+
+        body {
+            font-family: 'Courier New', 'Fira Code', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== LAYOUT PRINCIPAL ===== */
+        .app {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .sidebar-header h2 {
+            font-size: 24px;
+            letter-spacing: 4px;
+            color: var(--text-primary);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        /* Status */
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .status-led.connected {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-led.disconnected {
+            background: var(--error);
+            box-shadow: 0 0 10px var(--error);
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Online count */
+        .online-count {
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        /* Nick control */
+        .nick-control {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nick-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        .nick-input:focus {
+            outline: none;
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .nick-button {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 15px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nick-button:active {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        /* User list */
+        .user-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-list-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .user-item:active {
+            background: var(--bg-tertiary);
+        }
+
+        .user-nick {
+            color: var(--text-primary);
+        }
+
+        .user-lang {
+            font-size: 10px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        /* Language selector */
+        .language-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .language-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .language-select {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        .language-select option {
+            background: var(--bg-primary);
+        }
+
+        /* Footer */
+        .sidebar-footer {
+            padding: 16px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ===== CHAT PRINCIPAL ===== */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        /* Mensajes */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-left: 4px solid var(--accent);
+            background: var(--bg-secondary);
+            align-self: flex-start;
+            animation: fadeIn 0.3s ease;
+            border-radius: 0 8px 8px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.own {
+            border-left-color: var(--accent-secondary);
+            align-self: flex-end;
+            background: var(--bg-tertiary);
+        }
+
+        .message.system {
+            border-left-color: var(--warning);
+            background: var(--bg-tertiary);
+            color: var(--warning);
+            font-style: italic;
+            text-align: center;
+            max-width: 100%;
+            align-self: center;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            opacity: 0.8;
+        }
+
+        .message-user {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .message-time {
+            color: var(--text-secondary);
+        }
+
+        .message-text {
+            color: var(--text-primary);
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message-translation {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            color: var(--text-primary);
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* Input area */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-top: 2px solid var(--border);
+        }
+
+        .message-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 15px;
+            font-family: inherit;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .message-input:focus {
+            outline: none;
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .send-button {
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            padding: 0 30px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .send-button:active {
+            background: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        /* Botón de menú móvil */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 100;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            font-size: 24px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Overlay para móvil */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 5;
+            backdrop-filter: blur(3px);
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* ===== MEDIA QUERIES ===== */
+        @media screen and (max-width: 768px) {
+            /* Móvil */
+            .menu-toggle {
+                display: flex;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                display: block;
+            }
+
+            .sidebar-overlay.hidden {
+                display: none;
+            }
+
+            .message {
+                max-width: 90%;
+                font-size: 14px;
+            }
+
+            .input-area {
+                padding: 15px;
+            }
+
+            .message-input {
+                padding: 12px;
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+
+            .send-button {
+                padding: 0 20px;
+                font-size: 14px;
+            }
+
+            .chat-main {
+                width: 100%;
+            }
+        }
+
+        @media screen and (min-width: 769px) and (max-width: 1024px) {
+            /* Tablet */
+            .sidebar {
+                width: 260px;
+            }
+
+            .message {
+                max-width: 70%;
+            }
+        }
+
+        @media screen and (min-width: 1025px) {
+            /* Desktop */
+            .sidebar {
+                width: 300px;
+            }
+
+            .message {
+                max-width: 60%;
+            }
+
+            .message:hover {
+                background: var(--bg-tertiary);
+            }
+
+            .nick-button:hover, .send-button:hover {
+                background: var(--accent);
+                color: var(--bg-primary);
+            }
+
+            .user-item:hover {
+                background: var(--bg-tertiary);
+            }
+        }
+
+        /* Soporte para pantallas muy pequeñas */
+        @media screen and (max-width: 480px) {
+            .sidebar {
+                width: 85%;
+            }
+
+            .message {
+                max-width: 95%;
+                padding: 10px 12px;
+            }
+
+            .input-area {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .send-button {
+                padding: 0 15px;
+                white-space: nowrap;
+            }
+
+            .message-input {
+                padding: 10px;
+            }
+
+            .menu-toggle {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+        }
+
+        /* Orientación landscape en móvil */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            .sidebar {
+                width: 280px;
+            }
+
+            .messages-container {
+                padding: 10px;
+            }
+
+            .message {
+                margin-bottom: 8px;
+            }
+
+            .input-area {
+                padding: 10px;
+            }
+        }
+
+        /* Preferencia de movimiento reducido */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Alto contraste */
+        @media (prefers-contrast: high) {
+            :root {
+                --border: #fff;
+                --text-primary: #fff;
+                --bg-primary: #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+    <div class="sidebar-overlay hidden" id="sidebarOverlay"></div>
+
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>🌍 GLOCAL</h2>
+            </div>
+            
+            <div class="status-container">
+                <span class="status-led disconnected" id="statusLed"></span>
+                <span class="status-text" id="statusText">Desconectado</span>
+            </div>
+            
+            <div class="online-count" id="onlineCount">0 conectados</div>
+            
+            <div class="nick-control">
+                <input type="text" class="nick-input" id="nicknameInput" placeholder="nuevo nick" maxlength="20" aria-label="Nuevo nickname">
+                <button class="nick-button" id="changeNickBtn">cambiar</button>
+            </div>
+            
+            <div class="user-list-container">
+                <div class="user-list-title">👥 usuarios online</div>
+                <div id="userList"></div>
+            </div>
+            
+            <div class="language-section">
+                <label class="language-label" for="targetLang">🌐 traducir a:</label>
+                <select class="language-select" id="targetLang">
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                    <option value="it">Italiano</option>
+                    <option value="pt">Português</option>
+                    <option value="ja">日本語</option>
+                    <option value="ko">한국어</option>
+                    <option value="zh">中文</option>
+                    <option value="ru">Русский</option>
+                </select>
+            </div>
+            
+            <div class="sidebar-footer">
+                <span>IRC MODE · v2.0</span><br>
+                <span>🌍 LibreTranslate</span>
+            </div>
+        </div>
+        
+        <!-- Chat principal -->
+        <div class="chat-main">
+            <div class="messages-container" id="messages"></div>
+            
+            <div class="input-area">
+                <input type="text" class="message-input" id="messageInput" placeholder="escribe tu mensaje..." autofocus aria-label="Mensaje">
+                <button class="send-button" id="sendBtn">enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GLOCAL CHAT - VERSIÓN RESPONSIVE FINAL
+        // ============================================
+        
+        // Configuración
+        let socket;
+        let myNickname = '';
+        let targetLang = 'es';
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 10;
+        const baseDelay = 1000;
+        
+        // Elementos DOM
+        const messagesEl = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const changeNickBtn = document.getElementById('changeNickBtn');
+        const userListEl = document.getElementById('userList');
+        const onlineCountEl = document.getElementById('onlineCount');
+        const targetLangSelect = document.getElementById('targetLang');
+        const statusLed = document.getElementById('statusLed');
+        const statusText = document.getElementById('statusText');
+        
+        // Elementos del menú móvil
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        
+        // ============================================
+        // FUNCIONES DEL MENÚ MÓVIL
+        // ============================================
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('hidden');
+            
+            // Cambiar ícono del botón
+            if (sidebar.classList.contains('open')) {
+                menuToggle.textContent = '✕';
+                menuToggle.setAttribute('aria-label', 'Cerrar menú');
+            } else {
+                menuToggle.textContent = '☰';
+                menuToggle.setAttribute('aria-label', 'Abrir menú');
+            }
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.add('hidden');
+            menuToggle.textContent = '☰';
+            menuToggle.setAttribute('aria-label', 'Abrir menú');
+        }
+        
+        menuToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+        
+        // Cerrar sidebar al hacer click en un enlace (para móvil)
+        document.querySelectorAll('.nick-button, .language-select').forEach(el => {
+            el.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+        
+        // Detectar idioma del navegador
+        const browserLang = navigator.language.split('-')[0];
+        if (browserLang && [...targetLangSelect.options].some(opt => opt.value === browserLang)) {
+            targetLang = browserLang;
+            targetLangSelect.value = browserLang;
+        }
+        
+        // Cambiar idioma
+        targetLangSelect.addEventListener('change', (e) => {
+            targetLang = e.target.value;
+            addSystemMessage(`🌐 Idioma cambiado a: ${targetLangSelect.options[targetLangSelect.selectedIndex].text}`);
+        });
+        
+        // ============================================
+        // FUNCIONES DE TRADUCCIÓN
+        // ============================================
+        
+        async function translateText(text, targetLang) {
+            if (!text || targetLang === 'en') return text;
+            
+            // Timeout para no esperar demasiado
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            try {
+                const response = await fetch('https://libretranslate.com/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        q: text,
+                        source: 'auto',
+                        target: targetLang,
+                        format: 'text'
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta');
+                }
+                
+                const data = await response.json();
+                return data.translatedText || text;
+                
+            } catch (error) {
+                console.log('Error traduciendo:', error);
+                return text;
+            }
+        }
+        
+        // ============================================
+        // FUNCIONES DEL CHAT
+        // ============================================
+        
+        function connect() {
+            // Determinar URL según entorno
+            const wsUrl = window.location.hostname === 'localhost' 
+                ? 'ws://localhost:3000' 
+                : `ws://${window.location.host}`;
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = () => {
+                statusLed.className = 'status-led connected';
+                statusText.textContent = 'Conectado';
+                addSystemMessage('✅ Conectado al servidor');
+                reconnectAttempts = 0;
+                
+                // Cerrar sidebar en móvil al conectar
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            };
+            
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'system') {
+                    addSystemMessage(data.message);
+                    
+                    if (data.message.includes('Tu nick:')) {
+                        myNickname = data.message.split('Tu nick: ')[1];
+                    }
+                }
+                
+                if (data.type === 'message') {
+                    handleMessage(data);
+                }
+                
+                if (data.type === 'users') {
+                    updateUserList(data.users);
+                }
+            };
+            
+            socket.onclose = (event) => {
+                statusLed.className = 'status-led disconnected';
+                statusText.textContent = 'Desconectado';
+                
+                if (event.code === 1000) return;
+                
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    const delay = Math.min(baseDelay * Math.pow(2, reconnectAttempts), 30000);
+                    addSystemMessage(`🔄 Reconectando en ${delay/1000}s...`);
+                    
+                    setTimeout(() => {
+                        reconnectAttempts++;
+                        connect();
+                    }, delay);
+                } else {
+                    addSystemMessage('❌ No se pudo reconectar. Recarga la página.');
+                }
+            };
+            
+            socket.onerror = () => {
+                statusLed.className = 'status-led disconnected';
+                statusText.textContent = 'Error';
+            };
+        }
+        
+        function handleMessage(data) {
+            const isOwn = data.user === myNickname;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isOwn ? 'own' : ''}`;
+            
+            const time = new Date().toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-user">${escapeHtml(data.user)}</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-text">${escapeHtml(data.text)}</div>
+            `;
+            
+            messagesEl.appendChild(messageDiv);
+            
+            if (!isOwn && targetLang !== data.originalLanguage) {
+                translateText(data.text, targetLang).then(translated => {
+                    if (translated && translated !== data.text) {
+                        const translationDiv = document.createElement('div');
+                        translationDiv.className = 'message-translation';
+                        translationDiv.innerHTML = `🌍 ${escapeHtml(translated)}`;
+                        messageDiv.appendChild(translationDiv);
+                    }
+                    scrollToBottom();
+                });
+            } else {
+                scrollToBottom();
+            }
+        }
+        
+        function addSystemMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system';
+            messageDiv.textContent = text;
+            messagesEl.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        function updateUserList(users) {
+            userListEl.innerHTML = '';
+            onlineCountEl.textContent = `${users.length} ${users.length === 1 ? 'conectado' : 'conectados'}`;
+            
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-item';
+                userDiv.innerHTML = `
+                    <span class="user-nick">${escapeHtml(user.nickname)}</span>
+                    <span class="user-lang">${user.language || '??'}</span>
+                `;
+                userListEl.appendChild(userDiv);
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function scrollToBottom() {
+            messagesEl.scrollTo({
+                top: messagesEl.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+        
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
+            
+            socket.send(JSON.stringify({
+                type: 'message',
+                text: text
+            }));
+            
+            messageInput.value = '';
+        }
+        
+        function changeNickname() {
+            const newNick = nicknameInput.value.trim();
+            if (!newNick || !socket) return;
+            
+            socket.send(JSON.stringify({
+                type: 'set_nickname',
+                nickname: newNick
+            }));
+            
+            myNickname = newNick;
+            nicknameInput.value = '';
+            
+            // Feedback visual
+            changeNickBtn.style.background = 'var(--accent)';
+            changeNickBtn.style.color = 'var(--bg-primary)';
+            setTimeout(() => {
+                changeNickBtn.style.background = '';
+                changeNickBtn.style.color = '';
+            }, 200);
+        }
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        changeNickBtn.addEventListener('click', changeNickname);
+        
+        nicknameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') changeNickname();
+        });
+        
+        // Manejar cambios de orientación
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+        
+        // Scroll automático al enfocar input en móvil
+        messageInput.addEventListener('focus', () => {
+            setTimeout(scrollToBottom, 300);
+        });
+        
+        // ============================================
+        // INICIAR
+        // ============================================
+        
+        connect();
+        addSystemMessage('🌍 Bienvenido a GLOCAL');
+        addSystemMessage('💬 Escribe un mensaje para comenzar');
+    </script>
+</body>
+</html>
