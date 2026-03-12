@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>GLOCAL · chat global</title>
     <style>
-        /* ===== RESET Y VARIABLES ===== */
         * {
             margin: 0;
             padding: 0;
@@ -34,7 +33,6 @@
             overflow: hidden;
         }
 
-        /* ===== LAYOUT PRINCIPAL ===== */
         .app {
             display: flex;
             height: 100vh;
@@ -42,7 +40,7 @@
             position: relative;
         }
 
-        /* ===== SIDEBAR ===== */
+        /* Sidebar */
         .sidebar {
             width: 280px;
             background: var(--bg-secondary);
@@ -66,7 +64,6 @@
             text-shadow: 0 0 5px var(--accent);
         }
 
-        /* Status */
         .status-container {
             display: flex;
             align-items: center;
@@ -97,7 +94,6 @@
             color: var(--text-secondary);
         }
 
-        /* Online count */
         .online-count {
             padding: 12px 16px;
             background: var(--bg-tertiary);
@@ -107,7 +103,6 @@
             color: var(--text-primary);
         }
 
-        /* Nick control */
         .nick-control {
             display: flex;
             gap: 8px;
@@ -150,7 +145,6 @@
             color: var(--bg-primary);
         }
 
-        /* User list */
         .user-list-container {
             flex: 1;
             overflow-y: auto;
@@ -190,7 +184,6 @@
             opacity: 0.7;
         }
 
-        /* Language selector */
         .language-section {
             padding: 16px;
             border-bottom: 1px solid var(--border);
@@ -220,7 +213,6 @@
             background: var(--bg-primary);
         }
 
-        /* Footer */
         .sidebar-footer {
             padding: 16px;
             font-size: 11px;
@@ -229,7 +221,7 @@
             border-top: 1px solid var(--border);
         }
 
-        /* ===== CHAT PRINCIPAL ===== */
+        /* Chat principal */
         .chat-main {
             flex: 1;
             display: flex;
@@ -238,7 +230,6 @@
             position: relative;
         }
 
-        /* Mensajes */
         .messages-container {
             flex: 1;
             overflow-y: auto;
@@ -360,7 +351,7 @@
             color: var(--bg-primary);
         }
 
-        /* Botón de menú móvil */
+        /* Botón menú móvil */
         .menu-toggle {
             display: none;
             position: fixed;
@@ -380,7 +371,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* Overlay para móvil */
         .sidebar-overlay {
             display: none;
             position: fixed;
@@ -393,7 +383,11 @@
             backdrop-filter: blur(3px);
         }
 
-        /* Scrollbar personalizada */
+        .sidebar-overlay.hidden {
+            display: none;
+        }
+
+        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -407,9 +401,8 @@
             border-radius: 3px;
         }
 
-        /* ===== MEDIA QUERIES ===== */
+        /* Media queries */
         @media screen and (max-width: 768px) {
-            /* Móvil */
             .menu-toggle {
                 display: flex;
             }
@@ -431,13 +424,8 @@
                 display: block;
             }
 
-            .sidebar-overlay.hidden {
-                display: none;
-            }
-
             .message {
                 max-width: 90%;
-                font-size: 14px;
             }
 
             .input-area {
@@ -445,56 +433,10 @@
             }
 
             .message-input {
-                padding: 12px;
-                font-size: 16px; /* Evita zoom en iOS */
-            }
-
-            .send-button {
-                padding: 0 20px;
-                font-size: 14px;
-            }
-
-            .chat-main {
-                width: 100%;
+                font-size: 16px;
             }
         }
 
-        @media screen and (min-width: 769px) and (max-width: 1024px) {
-            /* Tablet */
-            .sidebar {
-                width: 260px;
-            }
-
-            .message {
-                max-width: 70%;
-            }
-        }
-
-        @media screen and (min-width: 1025px) {
-            /* Desktop */
-            .sidebar {
-                width: 300px;
-            }
-
-            .message {
-                max-width: 60%;
-            }
-
-            .message:hover {
-                background: var(--bg-tertiary);
-            }
-
-            .nick-button:hover, .send-button:hover {
-                background: var(--accent);
-                color: var(--bg-primary);
-            }
-
-            .user-item:hover {
-                background: var(--bg-tertiary);
-            }
-        }
-
-        /* Soporte para pantallas muy pequeñas */
         @media screen and (max-width: 480px) {
             .sidebar {
                 width: 85%;
@@ -502,69 +444,12 @@
 
             .message {
                 max-width: 95%;
-                padding: 10px 12px;
-            }
-
-            .input-area {
-                padding: 10px;
-                gap: 8px;
-            }
-
-            .send-button {
-                padding: 0 15px;
-                white-space: nowrap;
-            }
-
-            .message-input {
-                padding: 10px;
-            }
-
-            .menu-toggle {
-                width: 45px;
-                height: 45px;
-                font-size: 20px;
-            }
-        }
-
-        /* Orientación landscape en móvil */
-        @media screen and (max-width: 768px) and (orientation: landscape) {
-            .sidebar {
-                width: 280px;
-            }
-
-            .messages-container {
-                padding: 10px;
-            }
-
-            .message {
-                margin-bottom: 8px;
-            }
-
-            .input-area {
-                padding: 10px;
-            }
-        }
-
-        /* Preferencia de movimiento reducido */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* Alto contraste */
-        @media (prefers-contrast: high) {
-            :root {
-                --border: #fff;
-                --text-primary: #fff;
-                --bg-primary: #000;
             }
         }
     </style>
 </head>
 <body>
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+    <button class="menu-toggle" id="menuToggle">☰</button>
     <div class="sidebar-overlay hidden" id="sidebarOverlay"></div>
 
     <div class="app">
@@ -582,7 +467,7 @@
             <div class="online-count" id="onlineCount">0 conectados</div>
             
             <div class="nick-control">
-                <input type="text" class="nick-input" id="nicknameInput" placeholder="nuevo nick" maxlength="20" aria-label="Nuevo nickname">
+                <input type="text" class="nick-input" id="nicknameInput" placeholder="nuevo nick" maxlength="20">
                 <button class="nick-button" id="changeNickBtn">cambiar</button>
             </div>
             
@@ -618,7 +503,7 @@
             <div class="messages-container" id="messages"></div>
             
             <div class="input-area">
-                <input type="text" class="message-input" id="messageInput" placeholder="escribe tu mensaje..." autofocus aria-label="Mensaje">
+                <input type="text" class="message-input" id="messageInput" placeholder="escribe tu mensaje..." autofocus>
                 <button class="send-button" id="sendBtn">enviar</button>
             </div>
         </div>
@@ -626,7 +511,7 @@
 
     <script>
         // ============================================
-        // GLOCAL CHAT - VERSIÓN RESPONSIVE FINAL
+        // GLOCAL CHAT - VERSIÓN FINAL CORREGIDA
         // ============================================
         
         // Configuración
@@ -661,35 +546,21 @@
         function toggleSidebar() {
             sidebar.classList.toggle('open');
             sidebarOverlay.classList.toggle('hidden');
-            
-            // Cambiar ícono del botón
-            if (sidebar.classList.contains('open')) {
-                menuToggle.textContent = '✕';
-                menuToggle.setAttribute('aria-label', 'Cerrar menú');
-            } else {
-                menuToggle.textContent = '☰';
-                menuToggle.setAttribute('aria-label', 'Abrir menú');
-            }
+            menuToggle.textContent = sidebar.classList.contains('open') ? '✕' : '☰';
         }
         
         function closeSidebar() {
             sidebar.classList.remove('open');
             sidebarOverlay.classList.add('hidden');
             menuToggle.textContent = '☰';
-            menuToggle.setAttribute('aria-label', 'Abrir menú');
         }
         
         menuToggle.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', closeSidebar);
         
-        // Cerrar sidebar al hacer click en un enlace (para móvil)
-        document.querySelectorAll('.nick-button, .language-select').forEach(el => {
-            el.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    closeSidebar();
-                }
-            });
-        });
+        // ============================================
+        // CONFIGURACIÓN INICIAL
+        // ============================================
         
         // Detectar idioma del navegador
         const browserLang = navigator.language.split('-')[0];
@@ -705,15 +576,11 @@
         });
         
         // ============================================
-        // FUNCIONES DE TRADUCCIÓN
+        // FUNCIÓN DE TRADUCCIÓN
         // ============================================
         
         async function translateText(text, targetLang) {
             if (!text || targetLang === 'en') return text;
-            
-            // Timeout para no esperar demasiado
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
             
             try {
                 const response = await fetch('https://libretranslate.com/translate', {
@@ -726,15 +593,8 @@
                         source: 'auto',
                         target: targetLang,
                         format: 'text'
-                    }),
-                    signal: controller.signal
+                    })
                 });
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta');
-                }
                 
                 const data = await response.json();
                 return data.translatedText || text;
@@ -750,31 +610,33 @@
         // ============================================
         
         function connect() {
-            // Determinar URL según entorno
-            const wsUrl = window.location.hostname === 'localhost' 
-                ? 'ws://localhost:3000' 
-                : `ws://${window.location.host}`;
+            // Determinar URL del WebSocket (funciona en local y producción)
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const wsUrl = `${protocol}//${host}`;
             
+            console.log('🔌 Conectando a WebSocket:', wsUrl);
             socket = new WebSocket(wsUrl);
             
             socket.onopen = () => {
+                console.log('✅ WebSocket conectado');
                 statusLed.className = 'status-led connected';
                 statusText.textContent = 'Conectado';
                 addSystemMessage('✅ Conectado al servidor');
                 reconnectAttempts = 0;
                 
-                // Cerrar sidebar en móvil al conectar
-                if (window.innerWidth <= 768) {
-                    closeSidebar();
-                }
+                // Iniciar heartbeat
+                startHeartbeat();
+                
+                if (window.innerWidth <= 768) closeSidebar();
             };
             
             socket.onmessage = (event) => {
+                console.log('📩 Mensaje recibido:', event.data);
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'system') {
                     addSystemMessage(data.message);
-                    
                     if (data.message.includes('Tu nick:')) {
                         myNickname = data.message.split('Tu nick: ')[1];
                     }
@@ -790,6 +652,7 @@
             };
             
             socket.onclose = (event) => {
+                console.log('❌ WebSocket cerrado. Código:', event.code);
                 statusLed.className = 'status-led disconnected';
                 statusText.textContent = 'Desconectado';
                 
@@ -797,7 +660,7 @@
                 
                 if (reconnectAttempts < maxReconnectAttempts) {
                     const delay = Math.min(baseDelay * Math.pow(2, reconnectAttempts), 30000);
-                    addSystemMessage(`🔄 Reconectando en ${delay/1000}s...`);
+                    addSystemMessage(`🔄 Reconectando en ${delay/1000}s... (intento ${reconnectAttempts + 1})`);
                     
                     setTimeout(() => {
                         reconnectAttempts++;
@@ -808,10 +671,20 @@
                 }
             };
             
-            socket.onerror = () => {
+            socket.onerror = (error) => {
+                console.log('⚠️ Error WebSocket:', error);
                 statusLed.className = 'status-led disconnected';
                 statusText.textContent = 'Error';
             };
+        }
+        
+        function startHeartbeat() {
+            setInterval(() => {
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    console.log('💓 Enviando ping');
+                    socket.send(JSON.stringify({ type: 'ping' }));
+                }
+            }, 25000);
         }
         
         function handleMessage(data) {
@@ -835,6 +708,7 @@
             
             messagesEl.appendChild(messageDiv);
             
+            // Si no es mi mensaje y el idioma es diferente, traducir
             if (!isOwn && targetLang !== data.originalLanguage) {
                 translateText(data.text, targetLang).then(translated => {
                     if (translated && translated !== data.text) {
@@ -909,14 +783,6 @@
             
             myNickname = newNick;
             nicknameInput.value = '';
-            
-            // Feedback visual
-            changeNickBtn.style.background = 'var(--accent)';
-            changeNickBtn.style.color = 'var(--bg-primary)';
-            setTimeout(() => {
-                changeNickBtn.style.background = '';
-                changeNickBtn.style.color = '';
-            }, 200);
         }
         
         // ============================================
@@ -935,16 +801,8 @@
             if (e.key === 'Enter') changeNickname();
         });
         
-        // Manejar cambios de orientación
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                closeSidebar();
-            }
-        });
-        
-        // Scroll automático al enfocar input en móvil
-        messageInput.addEventListener('focus', () => {
-            setTimeout(scrollToBottom, 300);
+            if (window.innerWidth > 768) closeSidebar();
         });
         
         // ============================================
