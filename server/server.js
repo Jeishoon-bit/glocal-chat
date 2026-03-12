@@ -17,56 +17,69 @@ const wss = new WebSocketServer({ server });
 // Guardar clientes conectados
 const clients = new Map();
 
+console.log('🚀 Servidor GLOCAL iniciando...');
+
 // Generar ID aleatorio
 function generateId() {
   return Math.random().toString(36).substring(2, 8);
 }
 
-// Enviar a todos
+// Enviar a todos los clientes
 function broadcast(data, excludeWs = null) {
   const message = JSON.stringify(data);
+  console.log(`📢 Broadcast: ${data.type} a ${clients.size} clientes`);
   
+  let sentCount = 0;
   clients.forEach((_, clientWs) => {
     if (clientWs !== excludeWs && clientWs.readyState === 1) {
-      clientWs.send(message);
+      try {
+        clientWs.send(message);
+        sentCount++;
+      } catch (err) {
+        console.log('❌ Error enviando a cliente:', err);
+      }
     }
   });
+  console.log(`✅ Mensaje enviado a ${sentCount} clientes`);
 }
 
-// Heartbeat
+// Heartbeat interval
 const HEARTBEAT_INTERVAL = 25000;
 
+// Manejar nuevas conexiones
 wss.on('connection', (ws) => {
-  console.log('✅ Nuevo cliente conectado');
+  console.log('✅ Nuevo cliente conectado. Total:', clients.size + 1);
   
   ws.isAlive = true;
   
   ws.on('pong', () => {
+    console.log('💓 Pong recibido');
     ws.isAlive = true;
   });
   
-  // Crear usuario
+  // Crear nuevo usuario
   const nickname = `User_${generateId()}`;
-  
   clients.set(ws, { 
     id: generateId(),
     nickname,
     language: 'es'
   });
 
-  // Mensaje de bienvenida
+  console.log(`👤 Nuevo usuario: ${nickname}`);
+
+  // Mensaje de bienvenida al nuevo cliente
   ws.send(JSON.stringify({
     type: 'system',
     message: `Bienvenido al chat. Tu nick: ${nickname}`
   }));
 
-  // Avisar a todos
+  // Notificar a todos que alguien se unió
   broadcast({
     type: 'system',
     message: `${nickname} se unió al chat`
   }, ws);
   
-  // Enviar lista de usuarios
+  // Enviar lista actualizada de usuarios al nuevo cliente
   const userList = [];
   clients.forEach((client) => {
     userList.push({
@@ -80,20 +93,24 @@ wss.on('connection', (ws) => {
     users: userList
   }));
 
-  // Escuchar mensajes
+  // Manejar mensajes entrantes
   ws.on('message', async (data) => {
     try {
+      console.log('📨 Mensaje recibido:', data.toString());
       const message = JSON.parse(data.toString());
       const client = clients.get(ws);
       
       if (!client) return;
 
+      // Mensaje de chat normal
       if (message.type === 'message') {
+        console.log(`💬 Mensaje de ${client.nickname}: ${message.text}`);
+        
         // Detectar idioma (simplificado)
         const hasSpanish = /[áéíóúñü¿?¡!]/i.test(message.text);
         client.language = hasSpanish ? 'es' : 'en';
         
-        // Enviar a todos
+        // Reenviar a todos
         broadcast({
           type: 'message',
           user: client.nickname,
@@ -101,7 +118,7 @@ wss.on('connection', (ws) => {
           originalLanguage: client.language
         });
         
-        // Actualizar lista de usuarios
+        // Actualizar lista de usuarios (por si cambió idioma)
         const updatedList = [];
         clients.forEach(c => {
           updatedList.push({
@@ -116,9 +133,11 @@ wss.on('connection', (ws) => {
         });
       }
       
+      // Cambiar nickname
       if (message.type === 'set_nickname') {
         const oldNick = client.nickname;
         client.nickname = message.nickname.substring(0, 20);
+        console.log(`✏️ ${oldNick} cambió a ${client.nickname}`);
         
         broadcast({
           type: 'system',
@@ -140,24 +159,27 @@ wss.on('connection', (ws) => {
         });
       }
       
-      // Responder a pings
+      // Responder a ping (heartbeat)
       if (message.type === 'ping') {
         ws.send(JSON.stringify({ type: 'pong' }));
       }
       
     } catch (error) {
-      console.log('Error procesando mensaje:', error);
+      console.log('❌ Error procesando mensaje:', error);
     }
   });
 
-  // Cuando se desconecta
+  // Manejar desconexión
   ws.on('close', () => {
     const client = clients.get(ws);
     if (client) {
+      console.log(`❌ Cliente desconectado: ${client.nickname}`);
+      
       broadcast({
         type: 'system',
         message: `${client.nickname} salió del chat`
       });
+      
       clients.delete(ws);
       
       // Actualizar lista
@@ -174,15 +196,15 @@ wss.on('connection', (ws) => {
         users: updatedList
       });
     }
-    console.log('❌ Cliente desconectado');
   });
 });
 
-// Heartbeat interval
+// Heartbeat para mantener conexiones vivas
 const interval = setInterval(() => {
+  console.log('💓 Heartbeat: verificando conexiones...');
   wss.clients.forEach((ws) => {
     if (ws.isAlive === false) {
-      console.log('Terminando conexión inactiva');
+      console.log('⚠️ Terminando conexión inactiva');
       return ws.terminate();
     }
     
@@ -198,6 +220,6 @@ wss.on('close', () => {
 // Iniciar servidor
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor GLOCAL corriendo en puerto ${PORT}`);
-  console.log(`📡 WebSocket en ws://localhost:${PORT}`);
+  console.log(`✅ Servidor escuchando en puerto ${PORT}`);
+  console.log(`🌍 Accede en: https://glocal-chat.onrender.com`);
 });
