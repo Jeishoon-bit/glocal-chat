@@ -196,7 +196,7 @@ wss.on('close', () => {
 });
 
 // Iniciar servidor
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor GLOCAL corriendo en http://localhost:${PORT}`);
   console.log(`📡 WebSocket en ws://localhost:${PORT}`);
