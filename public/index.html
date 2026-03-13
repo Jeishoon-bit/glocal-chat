@@ -40,7 +40,6 @@
             position: relative;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background: var(--bg-secondary);
@@ -209,10 +208,6 @@
             border-radius: 4px;
         }
 
-        .language-select option {
-            background: var(--bg-primary);
-        }
-
         .sidebar-footer {
             padding: 16px;
             font-size: 11px;
@@ -221,7 +216,6 @@
             border-top: 1px solid var(--border);
         }
 
-        /* Chat principal */
         .chat-main {
             flex: 1;
             display: flex;
@@ -306,7 +300,6 @@
             opacity: 0.9;
         }
 
-        /* Input area */
         .input-area {
             display: flex;
             gap: 10px;
@@ -351,7 +344,6 @@
             color: var(--bg-primary);
         }
 
-        /* Botón menú móvil */
         .menu-toggle {
             display: none;
             position: fixed;
@@ -387,7 +379,6 @@
             display: none;
         }
 
-        /* Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -401,7 +392,6 @@
             border-radius: 3px;
         }
 
-        /* Media queries */
         @media screen and (max-width: 768px) {
             .menu-toggle {
                 display: flex;
@@ -453,7 +443,6 @@
     <div class="sidebar-overlay hidden" id="sidebarOverlay"></div>
 
     <div class="app">
-        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2>🌍 GLOCAL</h2>
@@ -494,11 +483,10 @@
             
             <div class="sidebar-footer">
                 <span>IRC MODE · v2.0</span><br>
-                <span>🌍 LibreTranslate</span>
+                <span>🌍 Traducción local</span>
             </div>
         </div>
         
-        <!-- Chat principal -->
         <div class="chat-main">
             <div class="messages-container" id="messages"></div>
             
@@ -510,11 +498,6 @@
     </div>
 
     <script>
-        // ============================================
-        // GLOCAL CHAT - VERSIÓN FINAL CORREGIDA
-        // ============================================
-        
-        // Configuración
         let socket;
         let myNickname = '';
         let targetLang = 'es';
@@ -522,7 +505,6 @@
         const maxReconnectAttempts = 10;
         const baseDelay = 1000;
         
-        // Elementos DOM
         const messagesEl = document.getElementById('messages');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -534,14 +516,9 @@
         const statusLed = document.getElementById('statusLed');
         const statusText = document.getElementById('statusText');
         
-        // Elementos del menú móvil
         const sidebar = document.getElementById('sidebar');
         const menuToggle = document.getElementById('menuToggle');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
-        
-        // ============================================
-        // FUNCIONES DEL MENÚ MÓVIL
-        // ============================================
         
         function toggleSidebar() {
             sidebar.classList.toggle('open');
@@ -558,32 +535,22 @@
         menuToggle.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', closeSidebar);
         
-        // ============================================
-        // CONFIGURACIÓN INICIAL
-        // ============================================
-        
-        // Detectar idioma del navegador
         const browserLang = navigator.language.split('-')[0];
         if (browserLang && [...targetLangSelect.options].some(opt => opt.value === browserLang)) {
             targetLang = browserLang;
             targetLangSelect.value = browserLang;
         }
         
-        // Cambiar idioma
         targetLangSelect.addEventListener('change', (e) => {
             targetLang = e.target.value;
             addSystemMessage(`🌐 Idioma cambiado a: ${targetLangSelect.options[targetLangSelect.selectedIndex].text}`);
         });
         
-        // ============================================
-        // FUNCIÓN DE TRADUCCIÓN
-        // ============================================
-        
         async function translateText(text, targetLang) {
             if (!text || targetLang === 'en') return text;
             
             try {
-                const res = await fetch("https://de.libretranslate.com/translate", {
+                const response = await fetch('/translate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -605,12 +572,7 @@
             }
         }
         
-        // ============================================
-        // FUNCIONES DEL CHAT
-        // ============================================
-        
         function connect() {
-            // Determinar URL del WebSocket (funciona en local y producción)
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const host = window.location.host;
             const wsUrl = `${protocol}//${host}`;
@@ -625,14 +587,10 @@
                 addSystemMessage('✅ Conectado al servidor');
                 reconnectAttempts = 0;
                 
-                // Iniciar heartbeat
-                startHeartbeat();
-                
                 if (window.innerWidth <= 768) closeSidebar();
             };
             
             socket.onmessage = (event) => {
-                console.log('📩 Mensaje recibido:', event.data);
                 const data = JSON.parse(event.data);
                 
                 if (data.type === 'system') {
@@ -678,15 +636,6 @@
             };
         }
         
-        function startHeartbeat() {
-            setInterval(() => {
-                if (socket && socket.readyState === WebSocket.OPEN) {
-                    console.log('💓 Enviando ping');
-                    socket.send(JSON.stringify({ type: 'ping' }));
-                }
-            }, 25000);
-        }
-        
         function handleMessage(data) {
             const isOwn = data.user === myNickname;
             
@@ -708,7 +657,6 @@
             
             messagesEl.appendChild(messageDiv);
             
-            // Si no es mi mensaje y el idioma es diferente, traducir
             if (!isOwn && targetLang !== data.originalLanguage) {
                 translateText(data.text, targetLang).then(translated => {
                     if (translated && translated !== data.text) {
@@ -785,29 +733,17 @@
             nicknameInput.value = '';
         }
         
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
-        
         sendBtn.addEventListener('click', sendMessage);
-        
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
-        
         changeNickBtn.addEventListener('click', changeNickname);
-        
         nicknameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') changeNickname();
         });
-        
         window.addEventListener('resize', () => {
             if (window.innerWidth > 768) closeSidebar();
         });
-        
-        // ============================================
-        // INICIAR
-        // ============================================
         
         connect();
         addSystemMessage('🌍 Bienvenido a GLOCAL');
