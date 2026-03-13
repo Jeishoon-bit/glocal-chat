@@ -583,7 +583,7 @@
             if (!text || targetLang === 'en') return text;
             
             try {
-                const response = await fetch('https://libretranslate.de/translate', {
+                const res = await fetch("https://de.libretranslate.com/translate", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
