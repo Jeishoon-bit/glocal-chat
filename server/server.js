@@ -12,21 +12,63 @@ const server = http.createServer(app);
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Proxy para LibreTranslate local
+// Proxy para traducción con múltiples servicios
 app.use(express.json());
 app.post('/translate', async (req, res) => {
-    try {
-        const response = await fetch('http://localhost:5000/translate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(req.body)
-        });
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        console.error('Error en traducción:', error);
-        res.status(500).json({ error: 'Error en traducción' });
+    const { q, source, target } = req.body;
+    
+    // Lista de servicios gratuitos
+    const services = [
+        {
+            name: 'LibreTranslate',
+            url: 'https://libretranslate.de/translate',
+            body: { q, source, target, format: 'text' }
+        },
+        {
+            name: 'MyMemory',
+            url: `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${source}|${target}`,
+            isGet: true
+        }
+    ];
+    
+    // Intentar cada servicio
+    for (const service of services) {
+        try {
+            console.log(`Intentando con: ${service.name}`);
+            
+            let response;
+            if (service.isGet) {
+                response = await fetch(service.url);
+            } else {
+                response = await fetch(service.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(service.body)
+                });
+            }
+            
+            if (!response.ok) continue;
+            
+            const data = await response.json();
+            
+            let translatedText;
+            if (service.name === 'MyMemory') {
+                translatedText = data.responseData?.translatedText;
+            } else {
+                translatedText = data.translatedText;
+            }
+            
+            if (translatedText) {
+                console.log(`✅ Traducción exitosa con: ${service.name}`);
+                return res.json({ translatedText });
+            }
+        } catch (error) {
+            console.log(`❌ Falló ${service.name}`);
+        }
     }
+    
+    // Si todo falla, devolver original
+    res.json({ translatedText: q });
 });
 
 // WebSocket server
@@ -41,12 +83,10 @@ function generateId() {
 
 function broadcast(data, excludeWs = null) {
     const message = JSON.stringify(data);
-    let sentCount = 0;
     clients.forEach((_, clientWs) => {
         if (clientWs !== excludeWs && clientWs.readyState === 1) {
             try {
                 clientWs.send(message);
-                sentCount++;
             } catch (err) {
                 console.log('❌ Error enviando a cliente:', err);
             }
@@ -204,4 +244,5 @@ wss.on('close', () => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Servidor escuchando en puerto ${PORT}`);
+    console.log(`🌍 Traducción con múltiples servicios gratuitos`);
 });
