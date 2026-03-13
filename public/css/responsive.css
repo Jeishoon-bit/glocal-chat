@@ -1,0 +1,81 @@
+/* ===== RESPONSIVE ELEGANTE ===== */
+
+/* Tablet */
+@media screen and (max-width: 1024px) {
+    .sidebar {
+        width: 280px;
+    }
+    
+    .message {
+        max-width: 75%;
+    }
+}
+
+/* Móvil */
+@media screen and (max-width: 768px) {
+    .menu-toggle {
+        display: flex;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 85%;
+        max-width: 320px;
+        transform: translateX(-100%);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay {
+        display: block;
+    }
+
+    .message {
+        max-width: 85%;
+    }
+
+    .input-area {
+        padding: 16px;
+        gap: 8px;
+    }
+
+    .send-button {
+        padding: 0 20px;
+    }
+    
+    .messages-container {
+        padding: 16px;
+    }
+}
+
+/* Móvil pequeño */
+@media screen and (max-width: 480px) {
+    .message {
+        max-width: 90%;
+    }
+    
+    .input-area {
+        padding: 12px;
+    }
+    
+    .message-input {
+        font-size: 16px;
+    }
+}
+
+/* Landscape en móvil */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .sidebar {
+        width: 280px;
+    }
+    
+    .messages-container {
+        padding: 12px;
+    }
+}
