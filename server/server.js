@@ -12,75 +12,54 @@ const server = http.createServer(app);
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Mapa de códigos de idioma válidos
-const languageMap = {
-    'es': 'es',
-    'en': 'en',
-    'fr': 'fr',
-    'de': 'de',
-    'it': 'it',
-    'pt': 'pt',
-    'ja': 'ja',
-    'ko': 'ko',
-    'zh': 'zh',
-    'ru': 'ru'
-};
-
-// Proxy para traducción
+// Proxy para traducción - SOLO INGLÉS Y ESPAÑOL
 app.use(express.json());
 app.post('/translate', async (req, res) => {
     const { q, source, target } = req.body;
     
-    // Usar el idioma seleccionado o inglés por defecto
-    const sourceLang = languageMap[source] || 'en';
-    const targetLang = languageMap[target] || 'en';
+    // Solo permitimos español o inglés
+    const validLangs = { 'es': 'es', 'en': 'en' };
+    const sourceLang = validLangs[source] || 'en';
+    const targetLang = validLangs[target] || 'es';
     
     console.log(`🌐 Traduciendo: "${q.substring(0, 30)}..." de ${sourceLang} a ${targetLang}`);
     
-    // Lista de servicios gratuitos
-    const services = [
-        {
-            name: 'LibreTranslate',
-            url: 'https://libretranslate.de/translate',
-            body: { q, source: sourceLang, target: targetLang, format: 'text' }
-        },
-        {
-            name: 'MyMemory',
-            url: `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${sourceLang}|${targetLang}`,
-            isGet: true
+    // MyMemory es excelente para español <-> inglés
+    try {
+        console.log('🔄 Intentando con MyMemory...');
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=${sourceLang}|${targetLang}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.responseData?.translatedText) {
+            console.log('✅ Traducción exitosa con MyMemory');
+            return res.json({ translatedText: data.responseData.translatedText });
         }
-    ];
+    } catch (error) {
+        console.log('❌ Falló MyMemory:', error.message);
+    }
     
-    // Intentar cada servicio
-    for (const service of services) {
-        try {
-            console.log(`🔄 Intentando con: ${service.name}`);
-            
-            let response;
-            if (service.isGet) {
-                response = await fetch(service.url);
-                const data = await response.json();
-                
-                if (data.responseData?.translatedText) {
-                    console.log(`✅ Traducción exitosa con: ${service.name}`);
-                    return res.json({ translatedText: data.responseData.translatedText });
-                }
-            } else {
-                response = await fetch(service.url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(service.body)
-                });
-                
-                const data = await response.json();
-                if (data.translatedText) {
-                    console.log(`✅ Traducción exitosa con: ${service.name}`);
-                    return res.json({ translatedText: data.translatedText });
-                }
-            }
-        } catch (error) {
-            console.log(`❌ Falló ${service.name}:`, error.message);
+    // Respaldo con LibreTranslate
+    try {
+        console.log('🔄 Intentando con LibreTranslate...');
+        const response = await fetch('https://libretranslate.de/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                q, 
+                source: sourceLang, 
+                target: targetLang, 
+                format: 'text' 
+            })
+        });
+        
+        const data = await response.json();
+        if (data.translatedText) {
+            console.log('✅ Traducción exitosa con LibreTranslate');
+            return res.json({ translatedText: data.translatedText });
         }
+    } catch (error) {
+        console.log('❌ Falló LibreTranslate:', error.message);
     }
     
     // Si todo falla, devolver original
@@ -126,7 +105,7 @@ wss.on('connection', (ws) => {
     clients.set(ws, { 
         id: generateId(),
         nickname,
-        language: 'es'
+        language: 'es' // Por defecto español
     });
 
     ws.send(JSON.stringify({
@@ -160,9 +139,15 @@ wss.on('connection', (ws) => {
             if (!client) return;
 
             if (message.type === 'message') {
-                // Detectar si el mensaje contiene español
+                // Detectar idioma del mensaje
                 const hasSpanish = /[áéíóúñü¿?¡!]/i.test(message.text);
-                client.language = hasSpanish ? 'es' : 'en';
+                const hasEnglish = /[a-zA-Z]/.test(message.text) && !hasSpanish;
+                
+                if (hasSpanish) {
+                    client.language = 'es';
+                } else if (hasEnglish) {
+                    client.language = 'en';
+                }
                 
                 broadcast({
                     type: 'message',
@@ -262,5 +247,5 @@ wss.on('close', () => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Servidor escuchando en puerto ${PORT}`);
-    console.log(`🌍 Traducción con múltiples servicios gratuitos`);
+    console.log(`🌍 Traducción solo inglés-español`);
 });
