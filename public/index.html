@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>GLOCAL · chat global</title>
+    <title>GLOCAL · inglés/español</title>
     <style>
         * {
             margin: 0;
@@ -466,24 +466,16 @@
             </div>
             
             <div class="language-section">
-                <label class="language-label" for="targetLang">🌐 traducir a:</label>
+                <label class="language-label" for="targetLang">🌐 ver mensajes en:</label>
                 <select class="language-select" id="targetLang">
                     <option value="es">Español</option>
                     <option value="en">English</option>
-                    <option value="fr">Français</option>
-                    <option value="de">Deutsch</option>
-                    <option value="it">Italiano</option>
-                    <option value="pt">Português</option>
-                    <option value="ja">日本語</option>
-                    <option value="ko">한국어</option>
-                    <option value="zh">中文</option>
-                    <option value="ru">Русский</option>
                 </select>
             </div>
             
             <div class="sidebar-footer">
                 <span>IRC MODE · v2.0</span><br>
-                <span>🌍 Traducción gratuita</span>
+                <span>🌍 Inglés · Español</span>
             </div>
         </div>
         
@@ -535,19 +527,20 @@
         menuToggle.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', closeSidebar);
         
+        // Detectar idioma del navegador
         const browserLang = navigator.language.split('-')[0];
-        if (browserLang && [...targetLangSelect.options].some(opt => opt.value === browserLang)) {
+        if (browserLang === 'es' || browserLang === 'en') {
             targetLang = browserLang;
             targetLangSelect.value = browserLang;
         }
         
         targetLangSelect.addEventListener('change', (e) => {
             targetLang = e.target.value;
-            addSystemMessage(`🌐 Idioma cambiado a: ${targetLangSelect.options[targetLangSelect.selectedIndex].text}`);
+            addSystemMessage(`🌐 Idioma cambiado a: ${targetLang === 'es' ? 'Español' : 'English'}`);
         });
         
         async function translateText(text, targetLang) {
-            if (!text || targetLang === 'en') return text;
+            if (!text) return text;
             
             try {
                 const response = await fetch('/translate', {
@@ -657,7 +650,8 @@
             
             messagesEl.appendChild(messageDiv);
             
-            if (!isOwn && targetLang !== data.originalLanguage) {
+            // Traducir si no es mi mensaje y el idioma es diferente al que quiero ver
+            if (!isOwn && data.originalLanguage && data.originalLanguage !== targetLang) {
                 translateText(data.text, targetLang).then(translated => {
                     if (translated && translated !== data.text) {
                         const translationDiv = document.createElement('div');
@@ -687,9 +681,10 @@
             users.forEach(user => {
                 const userDiv = document.createElement('div');
                 userDiv.className = 'user-item';
+                const lang = user.language === 'es' ? '🇪🇸' : '🇬🇧';
                 userDiv.innerHTML = `
                     <span class="user-nick">${escapeHtml(user.nickname)}</span>
-                    <span class="user-lang">${user.language || '??'}</span>
+                    <span class="user-lang">${lang}</span>
                 `;
                 userListEl.appendChild(userDiv);
             });
@@ -747,7 +742,8 @@
         
         connect();
         addSystemMessage('🌍 Bienvenido a GLOCAL');
-        addSystemMessage('💬 Escribe un mensaje para comenzar');
+        addSystemMessage('💬 Chat solo inglés y español');
+        addSystemMessage('🇪🇸 Escribe en español · 🇬🇧 Write in English');
     </script>
 </body>
 </html>
