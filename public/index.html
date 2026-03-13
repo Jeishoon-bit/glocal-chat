@@ -3,34 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>GLOCAL · inglés/español</title>
+    <title>GLOCAL · chat</title>
     <style>
+        :root {
+            /* Modo claro por defecto */
+            --color-bg: #f5f7fa;
+            --color-secondary: #ffffff;
+            --color-accent: #4f46e5;
+            --color-text: #1e293b;
+            --color-text-soft: #64748b;
+            --color-border: #e2e8f0;
+            --color-own-message: #e0e7ff;
+            --color-other-message: #ffffff;
+            --color-system: #f1f5f9;
+            --color-success: #10b981;
+            --color-error: #ef4444;
+            --color-warning: #f59e0b;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #1a1e24;
+                --color-secondary: #2d333b;
+                --color-accent: #818cf8;
+                --color-text: #e2e8f0;
+                --color-text-soft: #94a3b8;
+                --color-border: #3a404c;
+                --color-own-message: #312e81;
+                --color-other-message: #2d333b;
+                --color-system: #2d3748;
+                --color-success: #34d399;
+                --color-error: #f87171;
+                --color-warning: #fbbf24;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #111;
-            --bg-tertiary: #1a1a1a;
-            --text-primary: #0f0;
-            --text-secondary: #0f0;
-            --accent: #0f0;
-            --accent-secondary: #00f;
-            --border: #0f0;
-            --error: #f00;
-            --success: #0f0;
-            --warning: #ff0;
-        }
-
         body {
-            font-family: 'Courier New', 'Fira Code', monospace;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
             height: 100vh;
             overflow: hidden;
+            line-height: 1.5;
         }
 
         .app {
@@ -40,10 +60,11 @@
             position: relative;
         }
 
+        /* Sidebar */
         .sidebar {
             width: 280px;
-            background: var(--bg-secondary);
-            border-right: 2px solid var(--border);
+            background: var(--color-secondary);
+            border-right: 1px solid var(--color-border);
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease;
@@ -52,315 +73,289 @@
         }
 
         .sidebar-header {
-            padding: 20px 16px;
-            border-bottom: 2px solid var(--border);
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .sidebar-header h2 {
             font-size: 24px;
-            letter-spacing: 4px;
-            color: var(--text-primary);
-            text-shadow: 0 0 5px var(--accent);
+            font-weight: 600;
+            color: var(--color-accent);
+            letter-spacing: -0.5px;
         }
 
         .status-container {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .status-led {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             transition: all 0.3s ease;
         }
 
         .status-led.connected {
-            background: var(--success);
-            box-shadow: 0 0 10px var(--success);
+            background: var(--color-success);
+            box-shadow: 0 0 8px var(--color-success);
         }
 
         .status-led.disconnected {
-            background: var(--error);
-            box-shadow: 0 0 10px var(--error);
+            background: var(--color-error);
+            box-shadow: 0 0 8px var(--color-error);
         }
 
         .status-text {
             font-size: 14px;
-            color: var(--text-secondary);
+            color: var(--color-text-soft);
         }
 
         .online-count {
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            background: var(--color-bg);
+            border-bottom: 1px solid var(--color-border);
             font-size: 14px;
-            text-align: center;
-            color: var(--text-primary);
+            color: var(--color-text-soft);
         }
 
         .nick-control {
             display: flex;
             gap: 8px;
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .nick-input {
             flex: 1;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 10px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 10px 12px;
             font-family: inherit;
-            font-size: 13px;
-            border-radius: 4px;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
 
         .nick-input:focus {
             outline: none;
-            background: var(--accent);
-            color: var(--bg-primary);
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
         .nick-button {
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 10px 15px;
+            background: var(--color-accent);
+            border: none;
+            color: white;
+            padding: 10px 16px;
             font-family: inherit;
-            font-weight: bold;
+            font-weight: 500;
+            font-size: 14px;
             cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            white-space: nowrap;
+            border-radius: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .nick-button:hover {
+            opacity: 0.9;
         }
 
         .nick-button:active {
-            background: var(--accent);
-            color: var(--bg-primary);
+            transform: scale(0.98);
         }
 
         .user-list-container {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--color-border);
         }
 
         .user-list-title {
             font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--color-text-soft);
+            margin-bottom: 16px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .user-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 10px;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
             transition: background 0.2s;
         }
 
-        .user-item:active {
-            background: var(--bg-tertiary);
+        .user-item:hover {
+            background: var(--color-bg);
         }
 
         .user-nick {
-            color: var(--text-primary);
+            color: var(--color-text);
+            font-weight: 500;
         }
 
         .user-lang {
-            font-size: 10px;
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
-
-        .language-section {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .language-label {
-            display: block;
             font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .language-select {
-            width: 100%;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 10px;
-            font-family: inherit;
-            font-size: 13px;
-            border-radius: 4px;
+            color: var(--color-text-soft);
         }
 
         .sidebar-footer {
-            padding: 16px;
-            font-size: 11px;
-            color: var(--text-secondary);
+            padding: 20px;
+            font-size: 12px;
+            color: var(--color-text-soft);
             text-align: center;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid var(--color-border);
         }
 
+        /* Chat principal */
         .chat-main {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: var(--bg-primary);
+            background: var(--color-bg);
             position: relative;
         }
 
         .messages-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 16px;
         }
 
         .message {
-            max-width: 80%;
+            max-width: 70%;
             padding: 12px 16px;
-            border-left: 4px solid var(--accent);
-            background: var(--bg-secondary);
+            border-radius: 12px;
+            background: var(--color-other-message);
             align-self: flex-start;
             animation: fadeIn 0.3s ease;
-            border-radius: 0 8px 8px 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .message.own {
-            border-left-color: var(--accent-secondary);
+            background: var(--color-own-message);
             align-self: flex-end;
-            background: var(--bg-tertiary);
         }
 
         .message.system {
-            border-left-color: var(--warning);
-            background: var(--bg-tertiary);
-            color: var(--warning);
+            background: var(--color-system);
+            color: var(--color-text-soft);
             font-style: italic;
             text-align: center;
             max-width: 100%;
             align-self: center;
-            font-size: 12px;
-            border-radius: 4px;
+            font-size: 13px;
+            border-radius: 20px;
+            padding: 8px 16px;
         }
 
         .message-header {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
-            color: var(--text-secondary);
+            font-size: 12px;
+            color: var(--color-text-soft);
             margin-bottom: 6px;
-            opacity: 0.8;
         }
 
         .message-user {
-            font-weight: bold;
-            color: var(--text-primary);
+            font-weight: 600;
+            color: var(--color-text);
         }
 
         .message-time {
-            color: var(--text-secondary);
+            font-size: 11px;
         }
 
         .message-text {
-            color: var(--text-primary);
+            color: var(--color-text);
             word-wrap: break-word;
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
-        .message-translation {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-            color: var(--text-primary);
-            font-size: 13px;
-            opacity: 0.9;
-        }
-
+        /* Input area */
         .input-area {
             display: flex;
-            gap: 10px;
-            padding: 20px;
-            background: var(--bg-secondary);
-            border-top: 2px solid var(--border);
+            gap: 12px;
+            padding: 20px 24px;
+            background: var(--color-secondary);
+            border-top: 1px solid var(--color-border);
         }
 
         .message-input {
             flex: 1;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 15px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 14px 18px;
             font-family: inherit;
-            font-size: 14px;
-            border-radius: 4px;
+            font-size: 15px;
+            border-radius: 12px;
+            transition: all 0.2s;
         }
 
         .message-input:focus {
             outline: none;
-            background: var(--accent);
-            color: var(--bg-primary);
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
         .send-button {
-            background: var(--bg-primary);
-            border: 2px solid var(--border);
-            color: var(--text-primary);
-            padding: 0 30px;
+            background: var(--color-accent);
+            border: none;
+            color: white;
+            padding: 0 32px;
             font-family: inherit;
-            font-weight: bold;
-            font-size: 16px;
+            font-weight: 500;
+            font-size: 15px;
             cursor: pointer;
-            letter-spacing: 2px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
+            border-radius: 12px;
+            transition: opacity 0.2s;
+        }
+
+        .send-button:hover {
+            opacity: 0.9;
         }
 
         .send-button:active {
-            background: var(--accent);
-            color: var(--bg-primary);
+            transform: scale(0.98);
         }
 
+        /* Botón menú móvil */
         .menu-toggle {
             display: none;
             position: fixed;
-            top: 15px;
-            left: 15px;
+            top: 16px;
+            left: 16px;
             z-index: 100;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            color: var(--text-primary);
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
+            background: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             font-size: 24px;
             cursor: pointer;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar-overlay {
@@ -370,28 +365,34 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 5;
-            backdrop-filter: blur(3px);
+            backdrop-filter: blur(4px);
         }
 
         .sidebar-overlay.hidden {
             display: none;
         }
 
+        /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
+            background: var(--color-bg);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
+            background: var(--color-border);
+            border-radius: 4px;
         }
 
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-soft);
+        }
+
+        /* Media queries */
         @media screen and (max-width: 768px) {
             .menu-toggle {
                 display: flex;
@@ -403,7 +404,7 @@
                 left: 0;
                 height: 100vh;
                 transform: translateX(-100%);
-                box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
             }
 
             .sidebar.open {
@@ -415,15 +416,20 @@
             }
 
             .message {
-                max-width: 90%;
+                max-width: 85%;
             }
 
             .input-area {
-                padding: 15px;
+                padding: 16px;
             }
 
             .message-input {
                 font-size: 16px;
+                padding: 12px 16px;
+            }
+            
+            .send-button {
+                padding: 0 24px;
             }
         }
 
@@ -433,7 +439,11 @@
             }
 
             .message {
-                max-width: 95%;
+                max-width: 90%;
+            }
+            
+            .messages-container {
+                padding: 16px;
             }
         }
     </style>
@@ -465,17 +475,8 @@
                 <div id="userList"></div>
             </div>
             
-            <div class="language-section">
-                <label class="language-label" for="targetLang">🌐 ver mensajes en:</label>
-                <select class="language-select" id="targetLang">
-                    <option value="es">Español</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
-            
             <div class="sidebar-footer">
-                <span>IRC MODE · v2.0</span><br>
-                <span>🌍 Inglés · Español</span>
+                <span>v2.0 · chat simple</span>
             </div>
         </div>
         
@@ -490,9 +491,12 @@
     </div>
 
     <script>
+        // ============================================
+        // GLOCAL CHAT - VERSIÓN SIMPLE SIN TRADUCCIÓN
+        // ============================================
+        
         let socket;
         let myNickname = '';
-        let targetLang = 'es';
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 10;
         const baseDelay = 1000;
@@ -504,7 +508,6 @@
         const changeNickBtn = document.getElementById('changeNickBtn');
         const userListEl = document.getElementById('userList');
         const onlineCountEl = document.getElementById('onlineCount');
-        const targetLangSelect = document.getElementById('targetLang');
         const statusLed = document.getElementById('statusLed');
         const statusText = document.getElementById('statusText');
         
@@ -526,44 +529,6 @@
         
         menuToggle.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', closeSidebar);
-        
-        // Detectar idioma del navegador
-        const browserLang = navigator.language.split('-')[0];
-        if (browserLang === 'es' || browserLang === 'en') {
-            targetLang = browserLang;
-            targetLangSelect.value = browserLang;
-        }
-        
-        targetLangSelect.addEventListener('change', (e) => {
-            targetLang = e.target.value;
-            addSystemMessage(`🌐 Idioma cambiado a: ${targetLang === 'es' ? 'Español' : 'English'}`);
-        });
-        
-        async function translateText(text, targetLang) {
-            if (!text) return text;
-            
-            try {
-                const response = await fetch('/translate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        q: text,
-                        source: 'auto',
-                        target: targetLang,
-                        format: 'text'
-                    })
-                });
-                
-                const data = await response.json();
-                return data.translatedText || text;
-                
-            } catch (error) {
-                console.log('Error traduciendo:', error);
-                return text;
-            }
-        }
         
         function connect() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -649,21 +614,7 @@
             `;
             
             messagesEl.appendChild(messageDiv);
-            
-            // Traducir si no es mi mensaje y el idioma es diferente al que quiero ver
-            if (!isOwn && data.originalLanguage && data.originalLanguage !== targetLang) {
-                translateText(data.text, targetLang).then(translated => {
-                    if (translated && translated !== data.text) {
-                        const translationDiv = document.createElement('div');
-                        translationDiv.className = 'message-translation';
-                        translationDiv.innerHTML = `🌍 ${escapeHtml(translated)}`;
-                        messageDiv.appendChild(translationDiv);
-                    }
-                    scrollToBottom();
-                });
-            } else {
-                scrollToBottom();
-            }
+            scrollToBottom();
         }
         
         function addSystemMessage(text) {
@@ -742,8 +693,8 @@
         
         connect();
         addSystemMessage('🌍 Bienvenido a GLOCAL');
-        addSystemMessage('💬 Chat solo inglés y español');
-        addSystemMessage('🇪🇸 Escribe en español · 🇬🇧 Write in English');
+        addSystemMessage('💬 Chat simple sin traducción');
+        addSystemMessage('🇪🇸 Escribe en tu idioma · 🇬🇧 Write in your language');
     </script>
 </body>
 </html>
