@@ -615,4 +615,5 @@ body {
     .message-input {
         font-size: 16px;
     }
+.welcome-overlay { display: none !important; }
 }
