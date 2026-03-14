@@ -119,7 +119,273 @@ function changeNickname() {
 }
 
 // ============================================
-// INICIALIZACIÓN
+// 🎵 NUEVA SECCIÓN DE MÚSICA
+// ============================================
+
+// Elementos del DOM para música
+const musicPanel = document.querySelector('.music-panel');
+const toggleBtn = document.getElementById('toggleMusicBtn');
+const musicPlayer = document.getElementById('musicPlayer');
+const muteBtn = document.getElementById('personalMuteBtn');
+const searchInput = document.getElementById('songSearch');
+const searchBtn = document.getElementById('searchBtn');
+const searchResults = document.getElementById('searchResults');
+const queueList = document.getElementById('queueList');
+const queueCount = document.getElementById('queueCount');
+const currentSongTitle = document.getElementById('currentSongTitle');
+const currentSongArtist = document.getElementById('currentSongArtist');
+const songProgress = document.getElementById('songProgress');
+const currentTimeSpan = document.getElementById('currentTime');
+const totalTimeSpan = document.getElementById('totalTime');
+
+// Estado de la música
+let isMusicActive = false;
+let isMuted = false;
+let currentQueue = [];
+let currentProgress = 0;
+let musicInterval = null;
+
+// Inicializar música
+function initMusic() {
+    console.log('🎵 Inicializando sección de música...');
+    
+    // Toggle del panel de música
+    if (toggleBtn && musicPlayer) {
+        toggleBtn.addEventListener('click', () => {
+            const isVisible = musicPlayer.style.display !== 'none';
+            
+            if (isVisible) {
+                musicPlayer.style.display = 'none';
+                toggleBtn.querySelector('.toggle-text').textContent = '🔇 Activar';
+                musicPanel.classList.add('collapsed');
+            } else {
+                musicPlayer.style.display = 'block';
+                toggleBtn.querySelector('.toggle-text').textContent = '🔊 Activar';
+                musicPanel.classList.remove('collapsed');
+            }
+        });
+    }
+
+    // Botón de silencio individual
+    if (muteBtn) {
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            const icon = muteBtn.querySelector('.mute-icon');
+            const text = muteBtn.querySelector('.mute-text');
+            
+            if (isMuted) {
+                muteBtn.classList.add('muted');
+                icon.textContent = '🔇';
+                text.textContent = 'Silenciado';
+                if (musicInterval) {
+                    clearInterval(musicInterval);
+                    musicInterval = null;
+                }
+            } else {
+                muteBtn.classList.remove('muted');
+                icon.textContent = '🔊';
+                text.textContent = 'Escuchando';
+                startMusicSimulation();
+            }
+        });
+    }
+
+    // Buscador de canciones
+    if (searchBtn && searchInput) {
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+    }
+
+    // Cerrar resultados al hacer click fuera
+    document.addEventListener('click', (e) => {
+        if (searchResults && 
+            !searchResults.contains(e.target) && 
+            e.target !== searchBtn && 
+            e.target !== searchInput) {
+            searchResults.classList.remove('active');
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // Iniciar simulación de música (temporal)
+    startMusicSimulation();
+}
+
+// Función de búsqueda
+function performSearch() {
+    const query = searchInput.value.trim();
+    if (!query) return;
+    
+    // Simular resultados de búsqueda
+    const mockResults = [
+        { title: 'Mi favorita - Feid', duration: '3:30', artist: 'Feid' },
+        { title: 'Luna - Feid', duration: '2:45', artist: 'Feid' },
+        { title: 'Provenza - Karol G', duration: '3:20', artist: 'Karol G' },
+        { title: 'Monastery - Ryan Castro', duration: '2:50', artist: 'Ryan Castro' },
+        { title: 'Ferxxo 100 - Feid', duration: '2:45', artist: 'Feid' },
+        { title: 'Classy 101 - Feid', duration: '3:15', artist: 'Feid' }
+    ];
+    
+    // Mostrar resultados
+    searchResults.innerHTML = '';
+    mockResults.forEach(result => {
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'search-result-item';
+        resultDiv.innerHTML = `
+            <div class="result-info">
+                <span class="result-title">${result.title}</span>
+                <span class="result-duration">${result.duration}</span>
+            </div>
+            <button class="add-result-btn" onclick="window.addToQueue('${result.title}', '${result.artist}', '${result.duration}')">➕ Agregar</button>
+        `;
+        searchResults.appendChild(resultDiv);
+    });
+    
+    searchResults.classList.add('active');
+    searchResults.style.display = 'block';
+}
+
+// Función para agregar a la cola
+window.addToQueue = function(title, artist, duration) {
+    if (!queueList) return;
+    
+    const emptyMsg = queueList.querySelector('.queue-empty');
+    if (emptyMsg) {
+        emptyMsg.remove();
+    }
+    
+    // Crear elemento de la cola
+    const queueItem = document.createElement('div');
+    queueItem.className = 'queue-item';
+    queueItem.innerHTML = `
+        <span class="song-name">${title}</span>
+        <span class="song-duration">${duration}</span>
+    `;
+    
+    queueList.appendChild(queueItem);
+    
+    // Actualizar contador
+    currentQueue.push({ title, artist, duration });
+    if (queueCount) {
+        queueCount.textContent = currentQueue.length;
+    }
+    
+    // Si es la primera canción, empezar a reproducir
+    if (currentQueue.length === 1 && !isMusicActive) {
+        playNextSong();
+    }
+    
+    // Cerrar resultados
+    searchResults.classList.remove('active');
+    searchResults.style.display = 'none';
+    searchInput.value = '';
+};
+
+// Función para reproducir siguiente canción
+function playNextSong() {
+    if (currentQueue.length === 0) {
+        if (currentSongTitle) {
+            currentSongTitle.textContent = 'Ninguna canción';
+        }
+        if (currentSongArtist) {
+            currentSongArtist.textContent = '';
+        }
+        isMusicActive = false;
+        return;
+    }
+    
+    const nextSong = currentQueue[0];
+    if (currentSongTitle) {
+        currentSongTitle.textContent = nextSong.title;
+    }
+    if (currentSongArtist) {
+        currentSongArtist.textContent = nextSong.artist;
+    }
+    
+    isMusicActive = true;
+    currentProgress = 0;
+    
+    // Simular duración total (extraer minutos de "3:30")
+    const durationParts = nextSong.duration.split(':');
+    const totalMinutes = parseInt(durationParts[0]);
+    const totalSeconds = parseInt(durationParts[1]);
+    const totalSecondsNum = totalMinutes * 60 + totalSeconds;
+    
+    if (totalTimeSpan) {
+        totalTimeSpan.textContent = nextSong.duration;
+    }
+}
+
+// Simular progreso de la música
+function startMusicSimulation() {
+    if (musicInterval) {
+        clearInterval(musicInterval);
+    }
+    
+    musicInterval = setInterval(() => {
+        if (isMusicActive && !isMuted && currentQueue.length > 0) {
+            // Avanzar progreso
+            currentProgress = (currentProgress + 1) % 100;
+            
+            if (songProgress) {
+                songProgress.style.width = currentProgress + '%';
+            }
+            
+            // Calcular tiempo actual basado en la canción actual
+            if (currentQueue.length > 0 && currentTimeSpan) {
+                const currentSong = currentQueue[0];
+                const durationParts = currentSong.duration.split(':');
+                const totalSeconds = parseInt(durationParts[0]) * 60 + parseInt(durationParts[1]);
+                const currentSeconds = Math.floor((currentProgress / 100) * totalSeconds);
+                const minutes = Math.floor(currentSeconds / 60);
+                const seconds = currentSeconds % 60;
+                currentTimeSpan.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // Si llegó al final, pasar a la siguiente
+            if (currentProgress >= 99) {
+                // Eliminar la canción actual de la cola
+                currentQueue.shift();
+                
+                // Actualizar la cola visual
+                if (queueList) {
+                    const firstItem = queueList.querySelector('.queue-item');
+                    if (firstItem) {
+                        firstItem.remove();
+                    }
+                }
+                
+                if (queueCount) {
+                    queueCount.textContent = currentQueue.length;
+                }
+                
+                // Reproducir siguiente
+                if (currentQueue.length > 0) {
+                    playNextSong();
+                } else {
+                    isMusicActive = false;
+                    if (currentSongTitle) {
+                        currentSongTitle.textContent = 'Ninguna canción';
+                    }
+                    if (currentSongArtist) {
+                        currentSongArtist.textContent = '';
+                    }
+                    if (songProgress) {
+                        songProgress.style.width = '0%';
+                    }
+                    if (currentTimeSpan) {
+                        currentTimeSpan.textContent = '0:00';
+                    }
+                }
+            }
+        }
+    }, 300); // Actualizar cada 300ms para que se vea suave
+}
+
+// ============================================
+// INICIALIZACIÓN (MODIFICADA)
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -147,4 +413,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mensajes de bienvenida
     addSystemMessage('🌍 Bienvenido a GLOCAL');
     addSystemMessage('💬 Chat elegante sin traducción');
+    addSystemMessage('🎵 Nueva sección de música disponible');
+    
+    // Inicializar música
+    initMusic();
 });
