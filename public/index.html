@@ -49,6 +49,13 @@
                 <label class="section-label">Conectados</label>
                 <div class="users-list" id="userList"></div>
             </div>
+
+            <!-- ===== NUEVO BOTÓN DE MÚSICA EN SIDEBAR ===== -->
+            <button class="music-sidebar-btn" id="openMusicBtn">
+                <span class="music-icon">🎵</span>
+                <span class="music-text">SALA DE MÚSICA</span>
+                <span class="music-indicator" id="musicIndicator"></span>
+            </button>
             
             <div class="sidebar-footer">
                 <span>v2.0 · diseño elegante</span>
@@ -66,71 +73,67 @@
         </main>
     </div>
 
-    <!-- ===== NUEVA SECCIÓN DE MÚSICA ===== -->
-    <div class="music-panel">
-        <div class="music-header">
-            <div class="music-title">
-                <span>🎵</span>
-                <span>SALA DE MÚSICA</span>
+    <!-- ===== PANEL DE MÚSICA APARTE (NUEVO) ===== -->
+    <div class="music-overlay" id="musicOverlay">
+        <div class="music-panel">
+            <div class="music-panel-header">
+                <h2>🎵 SALA DE MÚSICA</h2>
+                <button class="music-close-btn" id="closeMusicBtn">✕</button>
             </div>
-            <button class="music-toggle" id="toggleMusicBtn">
-                <span class="toggle-text">🔊 Activar</span>
-                <span class="toggle-arrow">▼</span>
-            </button>
-        </div>
-
-        <div class="music-player" id="musicPlayer" style="display: none;">
-            <!-- Canción actual -->
-            <div class="current-song">
-                <div class="now-playing-badge">▶️ REPRODUCIENDO AHORA</div>
-                <div class="song-info">
-                    <span class="song-title" id="currentSongTitle">Ninguna canción</span>
-                    <span class="song-artist" id="currentSongArtist"></span>
-                </div>
-                
-                <!-- Barra de progreso -->
-                <div class="progress-area">
-                    <div class="progress-bar-bg">
-                        <div class="progress-fill" id="songProgress" style="width: 0%"></div>
+            
+            <div class="music-panel-content">
+                <!-- Canción actual -->
+                <div class="current-song">
+                    <div class="now-playing-badge">▶️ REPRODUCIENDO AHORA</div>
+                    <div class="song-info">
+                        <span class="song-title" id="currentSongTitle">Ninguna canción</span>
+                        <span class="song-artist" id="currentSongArtist"></span>
                     </div>
-                    <div class="time-display">
-                        <span id="currentTime">0:00</span>
-                        <span id="totalTime">0:00</span>
+                    
+                    <!-- Barra de progreso -->
+                    <div class="progress-area">
+                        <div class="progress-bar-bg">
+                            <div class="progress-fill" id="songProgress" style="width: 0%"></div>
+                        </div>
+                        <div class="time-display">
+                            <span id="currentTime">0:00</span>
+                            <span id="totalTime">0:00</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Cola de canciones -->
-            <div class="queue-section">
-                <div class="queue-header">
-                    <span>⏭️ PRÓXIMAS CANCIONES</span>
-                    <span class="queue-count" id="queueCount">0</span>
+                <!-- Cola de canciones -->
+                <div class="queue-section">
+                    <div class="queue-header">
+                        <span>⏭️ PRÓXIMAS CANCIONES</span>
+                        <span class="queue-count" id="queueCount">0</span>
+                    </div>
+                    <div class="queue-list" id="queueList">
+                        <div class="queue-empty">No hay canciones en cola</div>
+                    </div>
                 </div>
-                <div class="queue-list" id="queueList">
-                    <div class="queue-empty">No hay canciones en cola</div>
-                </div>
-            </div>
 
-            <!-- Buscador -->
-            <div class="search-section">
-                <div class="search-box">
-                    <input type="text" 
-                           class="search-input" 
-                           id="songSearch" 
-                           placeholder="Buscar canción en YouTube..."
-                           autocomplete="off">
-                    <button class="search-button" id="searchBtn">🔍 Buscar</button>
+                <!-- Buscador -->
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="text" 
+                               class="search-input" 
+                               id="songSearch" 
+                               placeholder="Buscar canción en YouTube..."
+                               autocomplete="off">
+                        <button class="search-button" id="searchBtn">🔍 Buscar</button>
+                    </div>
+                    <div class="search-results" id="searchResults"></div>
                 </div>
-                <div class="search-results" id="searchResults"></div>
-            </div>
 
-            <!-- Control personal de audio -->
-            <div class="personal-audio">
-                <button class="mute-button" id="personalMuteBtn">
-                    <span class="mute-icon">🔊</span>
-                    <span class="mute-text">Escuchando</span>
-                </button>
-                <span class="personal-hint">(solo para ti)</span>
+                <!-- Control personal de audio -->
+                <div class="personal-audio">
+                    <button class="mute-button" id="personalMuteBtn">
+                        <span class="mute-icon">🔊</span>
+                        <span class="mute-text">Escuchando</span>
+                    </button>
+                    <span class="personal-hint">(solo para ti)</span>
+                </div>
             </div>
         </div>
     </div>
