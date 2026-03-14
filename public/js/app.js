@@ -119,13 +119,16 @@ function changeNickname() {
 }
 
 // ============================================
-// 🎵 NUEVA SECCIÓN DE MÚSICA
+// 🎵 NUEVA SECCIÓN DE MÚSICA (PANEL APARTE)
 // ============================================
 
-// Elementos del DOM para música
-const musicPanel = document.querySelector('.music-panel');
-const toggleBtn = document.getElementById('toggleMusicBtn');
-const musicPlayer = document.getElementById('musicPlayer');
+// Elementos del panel de música
+const openMusicBtn = document.getElementById('openMusicBtn');
+const closeMusicBtn = document.getElementById('closeMusicBtn');
+const musicOverlay = document.getElementById('musicOverlay');
+const musicIndicator = document.getElementById('musicIndicator');
+
+// Elementos del reproductor (los mismos de antes pero ahora en el panel)
 const muteBtn = document.getElementById('personalMuteBtn');
 const searchInput = document.getElementById('songSearch');
 const searchBtn = document.getElementById('searchBtn');
@@ -144,27 +147,53 @@ let isMuted = false;
 let currentQueue = [];
 let currentProgress = 0;
 let musicInterval = null;
+let isMusicPanelOpen = false;
+
+// ============================================
+// FUNCIONES DEL PANEL DE MÚSICA
+// ============================================
+
+// Abrir panel de música
+if (openMusicBtn) {
+    openMusicBtn.addEventListener('click', () => {
+        musicOverlay.classList.add('active');
+        isMusicPanelOpen = true;
+    });
+}
+
+// Cerrar panel de música
+if (closeMusicBtn) {
+    closeMusicBtn.addEventListener('click', () => {
+        musicOverlay.classList.remove('active');
+        isMusicPanelOpen = false;
+    });
+}
+
+// Cerrar con tecla ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && musicOverlay.classList.contains('active')) {
+        musicOverlay.classList.remove('active');
+        isMusicPanelOpen = false;
+    }
+});
+
+// Cerrar haciendo clic fuera del panel
+if (musicOverlay) {
+    musicOverlay.addEventListener('click', (e) => {
+        if (e.target === musicOverlay) {
+            musicOverlay.classList.remove('active');
+            isMusicPanelOpen = false;
+        }
+    });
+}
+
+// ============================================
+// FUNCIONES DEL REPRODUCTOR (adaptadas)
+// ============================================
 
 // Inicializar música
 function initMusic() {
     console.log('🎵 Inicializando sección de música...');
-    
-    // Toggle del panel de música
-    if (toggleBtn && musicPlayer) {
-        toggleBtn.addEventListener('click', () => {
-            const isVisible = musicPlayer.style.display !== 'none';
-            
-            if (isVisible) {
-                musicPlayer.style.display = 'none';
-                toggleBtn.querySelector('.toggle-text').textContent = '🔇 Activar';
-                musicPanel.classList.add('collapsed');
-            } else {
-                musicPlayer.style.display = 'block';
-                toggleBtn.querySelector('.toggle-text').textContent = '🔊 Activar';
-                musicPanel.classList.remove('collapsed');
-            }
-        });
-    }
 
     // Botón de silencio individual
     if (muteBtn) {
@@ -209,7 +238,7 @@ function initMusic() {
         }
     });
 
-    // Iniciar simulación de música (temporal)
+    // Iniciar simulación de música
     startMusicSimulation();
 }
 
@@ -272,6 +301,9 @@ window.addToQueue = function(title, artist, duration) {
         queueCount.textContent = currentQueue.length;
     }
     
+    // Actualizar indicador de música
+    updateMusicIndicator();
+    
     // Si es la primera canción, empezar a reproducir
     if (currentQueue.length === 1 && !isMusicActive) {
         playNextSong();
@@ -293,6 +325,7 @@ function playNextSong() {
             currentSongArtist.textContent = '';
         }
         isMusicActive = false;
+        updateMusicIndicator();
         return;
     }
     
@@ -306,13 +339,9 @@ function playNextSong() {
     
     isMusicActive = true;
     currentProgress = 0;
+    updateMusicIndicator();
     
-    // Simular duración total (extraer minutos de "3:30")
-    const durationParts = nextSong.duration.split(':');
-    const totalMinutes = parseInt(durationParts[0]);
-    const totalSeconds = parseInt(durationParts[1]);
-    const totalSecondsNum = totalMinutes * 60 + totalSeconds;
-    
+    // Simular duración total
     if (totalTimeSpan) {
         totalTimeSpan.textContent = nextSong.duration;
     }
@@ -333,7 +362,7 @@ function startMusicSimulation() {
                 songProgress.style.width = currentProgress + '%';
             }
             
-            // Calcular tiempo actual basado en la canción actual
+            // Calcular tiempo actual
             if (currentQueue.length > 0 && currentTimeSpan) {
                 const currentSong = currentQueue[0];
                 const durationParts = currentSong.duration.split(':');
@@ -361,6 +390,9 @@ function startMusicSimulation() {
                     queueCount.textContent = currentQueue.length;
                 }
                 
+                // Actualizar indicador
+                updateMusicIndicator();
+                
                 // Reproducir siguiente
                 if (currentQueue.length > 0) {
                     playNextSong();
@@ -381,7 +413,20 @@ function startMusicSimulation() {
                 }
             }
         }
-    }, 300); // Actualizar cada 300ms para que se vea suave
+    }, 300);
+}
+
+// Actualizar indicador de música en el sidebar
+function updateMusicIndicator() {
+    if (musicIndicator) {
+        if (currentQueue.length > 0) {
+            musicIndicator.style.background = '#4cd964';
+            musicIndicator.style.animation = 'pulse 2s infinite';
+        } else {
+            musicIndicator.style.background = '#ff3b30';
+            musicIndicator.style.animation = 'none';
+        }
+    }
 }
 
 // ============================================
@@ -413,8 +458,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mensajes de bienvenida
     addSystemMessage('🌍 Bienvenido a GLOCAL');
     addSystemMessage('💬 Chat elegante sin traducción');
-    addSystemMessage('🎵 Nueva sección de música disponible');
+    addSystemMessage('🎵 Nueva sala de música disponible');
     
     // Inicializar música
     initMusic();
+    
+    // Actualizar indicador al inicio
+    updateMusicIndicator();
 });
