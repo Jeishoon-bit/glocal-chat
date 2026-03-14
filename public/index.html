@@ -66,6 +66,75 @@
         </main>
     </div>
 
+    <!-- ===== NUEVA SECCIÓN DE MÚSICA ===== -->
+    <div class="music-panel">
+        <div class="music-header">
+            <div class="music-title">
+                <span>🎵</span>
+                <span>SALA DE MÚSICA</span>
+            </div>
+            <button class="music-toggle" id="toggleMusicBtn">
+                <span class="toggle-text">🔊 Activar</span>
+                <span class="toggle-arrow">▼</span>
+            </button>
+        </div>
+
+        <div class="music-player" id="musicPlayer" style="display: none;">
+            <!-- Canción actual -->
+            <div class="current-song">
+                <div class="now-playing-badge">▶️ REPRODUCIENDO AHORA</div>
+                <div class="song-info">
+                    <span class="song-title" id="currentSongTitle">Ninguna canción</span>
+                    <span class="song-artist" id="currentSongArtist"></span>
+                </div>
+                
+                <!-- Barra de progreso -->
+                <div class="progress-area">
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" id="songProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span>
+                        <span id="totalTime">0:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cola de canciones -->
+            <div class="queue-section">
+                <div class="queue-header">
+                    <span>⏭️ PRÓXIMAS CANCIONES</span>
+                    <span class="queue-count" id="queueCount">0</span>
+                </div>
+                <div class="queue-list" id="queueList">
+                    <div class="queue-empty">No hay canciones en cola</div>
+                </div>
+            </div>
+
+            <!-- Buscador -->
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" 
+                           class="search-input" 
+                           id="songSearch" 
+                           placeholder="Buscar canción en YouTube..."
+                           autocomplete="off">
+                    <button class="search-button" id="searchBtn">🔍 Buscar</button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+            </div>
+
+            <!-- Control personal de audio -->
+            <div class="personal-audio">
+                <button class="mute-button" id="personalMuteBtn">
+                    <span class="mute-icon">🔊</span>
+                    <span class="mute-text">Escuchando</span>
+                </button>
+                <span class="personal-hint">(solo para ti)</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts (ordenados: utils, ui, app) -->
     <script type="module" src="js/utils/helpers.js"></script>
     <script type="module" src="js/ui/sidebar.js"></script>
