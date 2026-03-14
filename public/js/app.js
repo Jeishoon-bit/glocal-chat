@@ -1,41 +1,88 @@
-// ============================================
-// GLOCAL APP - INICIALIZACIÓN PRINCIPAL
-// ============================================
-
 import { initSidebar } from './ui/sidebar.js';
 import { initMessages, addSystemMessage, addMessage } from './ui/messages.js';
 import { initUsers, updateUserList } from './ui/users.js';
 import { escapeHtml, detectLanguage } from './utils/helpers.js';
 
-// Variables globales
+// ============================================
+// MODAL DE BIENVENIDA GLOCAL CHAT
+// ============================================
+
+function initWelcomeModal() {
+    const modal = document.getElementById('glocalWelcome');
+    const enterBtn = document.getElementById('enterGlocalBtn');
+    
+    if (!modal || !enterBtn) return;
+    
+    // Verificar si ya vio la bienvenida en esta sesión
+    const hasSeenWelcome = sessionStorage.getItem('glocal_welcome_seen');
+    
+    if (hasSeenWelcome) {
+        modal.style.display = 'none';
+        return;
+    }
+    
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    
+    enterBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        sessionStorage.setItem('glocal_welcome_seen', 'true');
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    });
+}
+
 let socket;
 let myNickname = '';
 let reconnectAttempts = 0;
 const maxReconnectAttempts = 10;
 const baseDelay = 1000;
 
-// Elementos DOM
 const statusLed = document.getElementById('statusLed');
 const statusText = document.getElementById('statusText');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
 const nicknameInput = document.getElementById('nicknameInput');
 const changeNickBtn = document.getElementById('changeNickBtn');
+const logoutBtn = document.getElementById('logoutBtn');
 
-// ============================================
-// CONEXIÓN WEBSOCKET
-// ============================================
+// Mostrar información del usuario
+const user = JSON.parse(localStorage.getItem('user') || '{}');
+const usernameDisplay = document.getElementById('usernameDisplay');
+const userBadge = document.getElementById('userBadge');
+
+if (usernameDisplay) {
+    usernameDisplay.textContent = user.username || 'Usuario';
+}
+if (userBadge && user.isCreator) {
+    userBadge.textContent = '⚡ Creador';
+}
+
+// Logout
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+    });
+}
 
 function connectWebSocket() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/';
+        return;
+    }
+    
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const wsUrl = `${protocol}//${host}`;
+    const wsUrl = `${protocol}//${host}?token=${token}`;
     
-    console.log('🔌 Conectando a WebSocket:', wsUrl);
     socket = new WebSocket(wsUrl);
     
     socket.onopen = () => {
-        console.log('✅ WebSocket conectado');
         statusLed.className = 'status-led connected';
         statusText.textContent = 'Conectado';
         addSystemMessage('✅ Conectado al servidor');
@@ -63,7 +110,6 @@ function connectWebSocket() {
     };
     
     socket.onclose = (event) => {
-        console.log('❌ WebSocket cerrado. Código:', event.code);
         statusLed.className = 'status-led disconnected';
         statusText.textContent = 'Desconectado';
         
@@ -78,20 +124,10 @@ function connectWebSocket() {
                 connectWebSocket();
             }, delay);
         } else {
-            addSystemMessage('❌ No se pudo reconectar. Recarga la página.');
+            addSystemMessage('❌ No se pudo reconectar');
         }
     };
-    
-    socket.onerror = (error) => {
-        console.log('⚠️ Error WebSocket:', error);
-        statusLed.className = 'status-led disconnected';
-        statusText.textContent = 'Error';
-    };
 }
-
-// ============================================
-// FUNCIONES DE INTERACCIÓN
-// ============================================
 
 function sendMessage() {
     const text = messageInput.value.trim();
@@ -118,19 +154,11 @@ function changeNickname() {
     nicknameInput.value = '';
 }
 
-// ============================================
-// INICIALIZACIÓN
-// ============================================
-
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Inicializando GLOCAL...');
-    
-    // Inicializar módulos UI
     initSidebar();
     initMessages();
     initUsers();
     
-    // Event listeners
     sendBtn.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
@@ -141,10 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') changeNickname();
     });
     
-    // Conectar WebSocket
     connectWebSocket();
     
-    // Mensajes de bienvenida
-    addSystemMessage('🌍 Bienvenido a GLOCAL');
-    addSystemMessage('💬 Chat elegante sin traducción');
+    addSystemMessage('🌍 Bienvenido a GLOCAL CHAT');
+    addSystemMessage('💬 Chat global con usuarios únicos');
+    
+    // Iniciar modal de bienvenida después de 500ms
+    setTimeout(initWelcomeModal, 500);
 });
